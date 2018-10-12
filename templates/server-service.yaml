@@ -20,6 +20,7 @@ metadata:
     service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
 spec:
   clusterIP: None
+  #type: NodePort
   # We want the servers to become available even if they're not ready
   # since this DNS is also used for join operations.
   publishNotReadyAddresses: true
@@ -59,3 +60,4 @@ spec:
     release: "{{ .Release.Name }}"
     component: server
 {{- end }}
+

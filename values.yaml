@@ -30,10 +30,10 @@ global:
   datacenter: dc1
 
 server:
-  enabled: "-"
+  enabled: true
   image: null
-  replicas: 3
-  bootstrapExpect: 3 # Should <= replicas count
+  replicas: 1
+  bootstrapExpect: 1 # Should <= replicas count
 
   # storage and storageClass are the settings for configuring stateful
   # storage for the server pods. storage should be set to the disk size of
@@ -60,14 +60,14 @@ server:
   # disruptionBudget enables the creation of a PodDisruptionBudget to
   # prevent voluntary degrading of the Consul server cluster.
   disruptionBudget:
-    enabled: true
+    enabled: false
 
     # maxUnavailable will default to (n/2)-1 where n is the number of
     # replicas. If you'd like a custom value, you can specify an override here.
-    maxUnavailable: null
+    maxUnavailable: 0
 
   # extraConfig is a raw string of extra configuration to set with the
-  # server. This should be JSON.
+  # server. This should be JSON or HCL.
   extraConfig: |
     {}
 
@@ -83,13 +83,9 @@ server:
 # within the Kube cluster. The current deployment model follows a traditional
 # DC where a single agent is deployed per node.
 client:
-  enabled: "-"
+  enabled: true
   image: null
   join: null
-
-  # grpc should be set to true if the gRPC listener should be enabled.
-  # This should be set to true if connectInject is enabled.
-  grpc: false
 
   # Resource requests, limits, etc. for the client cluster placement. This
   # should map directly to the value of the resources field for a PodSpec.
@@ -97,7 +93,7 @@ client:
   resources: {}
 
   # extraConfig is a raw string of extra configuration to set with the
-  # server. This should be JSON.
+  # server. This should be JSON or HCL.
   extraConfig: |
     {}
 
@@ -116,14 +112,14 @@ client:
 # for this to have any effect:
 # https://kubernetes.io/docs/tasks/administer-cluster/dns-custom-nameservers/#configure-stub-domain-and-upstream-dns-servers
 dns:
-  enabled: "-"
+  enabled: true
 
 ui:
   # True if you want to enable the Consul UI. The UI will run only
   # on the server nodes. This makes UI access via the service below (if
   # enabled) predictable rather than "any node" if you're running Consul
   # clients as well.
-  enabled: "-"
+  enabled: true
 
   # True if you want to create a Service entry for the Consul UI.
   #
@@ -132,7 +128,7 @@ ui:
   # balancer (for supported K8S installations) to access the UI.
   service:
     enabled: true
-    type: null
+    type: LoadBalancer
 
 # syncCatalog will run the catalog sync process to sync K8S with Consul
 # services. This can run bidirectional (default) or unidirectionally (Consul
@@ -144,7 +140,7 @@ ui:
 # Consul agent.
 syncCatalog:
   # True if you want to enable the catalog sync. "-" for default.
-  enabled: false
+  enabled: true
   image: null
 
   # toConsul and toK8S control whether syncing is enabled to Consul or K8S
@@ -159,16 +155,10 @@ syncCatalog:
 
 # ConnectInject will enable the automatic Connect sidecar injector.
 connectInject:
-  enabled: false
-  image: null # image for consul-k8s that contains the injector
+  enabled: false # "-" disable this by default for now until the image is public
+  image: "TODO"
   default: false # true will inject by default, otherwise requires annotation
-
-  # imageConsul and imageEnvoy can be set to Docker images for Consul and
-  # Envoy, respectively. If the Consul image is not specified, the global
-  # default will be used. If the Envoy image is not specified, an early
-  # version of Envoy will be used.
-  imageConsul: null
-  imageEnvoy: null
+  caBundle: "" # empty will auto generate the bundle
 
   # namespaceSelector is the selector for restricting the webhook to only
   # specific namespaces. This should be set to a multiline string.
@@ -196,3 +186,4 @@ connectInject:
     # defaults but can be customized if necessary.
     certName: tls.crt
     keyName: tls.key
+

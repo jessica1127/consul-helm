@@ -37,6 +37,8 @@ spec:
       annotations:
         "consul.hashicorp.com/connect-inject": "false"
     spec:
+      #bb added
+      hostNetwork: true
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -79,12 +81,13 @@ spec:
             - "-ec"
             - |
               CONSUL_FULLNAME="{{template "consul.fullname" . }}"
+              IP=$(hostname -i)
 
               exec /bin/consul agent \
-                -advertise="${POD_IP}" \
                 -bind=0.0.0.0 \
                 -bootstrap-expect={{ .Values.server.bootstrapExpect }} \
                 -client=0.0.0.0 \
+                -advertise=${IP} \
                 -config-dir=/consul/config \
                 {{- range .Values.server.extraVolumes }}
                 {{- if .load }}
@@ -103,7 +106,8 @@ spec:
                 {{- range $index := until (.Values.server.replicas | int) }}
                 -retry-join=${CONSUL_FULLNAME}-server-{{ $index }}.${CONSUL_FULLNAME}-server.${NAMESPACE}.svc \
                 {{- end }}
-                -server
+                -server \
+                -recursor 8.8.8.8 -recursor 8.8.4.4
           volumeMounts:
             - name: data
               mountPath: /consul/data
@@ -164,3 +168,4 @@ spec:
         storageClassName: {{ .Values.server.storageClass }}
         {{- end }}
 {{- end }}
+
